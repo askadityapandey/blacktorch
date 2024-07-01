@@ -1,18 +1,16 @@
 import React, { useState } from 'react';
+import PreviewBox from './components/previewbox';
+import Timeline from './components/timeline';
 
-function App() {
-  const [selectedVideo, setSelectedVideo] = useState(null);
-
-  const handleFileChange = (event) => {
-    const selectedFile = event.target.files[0];
-    setSelectedVideo(selectedFile);
-  };
+const App = () => {
+  const [selectedClip, setSelectedClip] = useState<string | null>(null);
 
   return (
-    <div className="App">
-      <h1>Welcome to your Video Editor!</h1>
-      <input type="file" accept="video/*" onChange={handleFileChange} />
-      {/* Rest of your component */}
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <PreviewBox selectedClip={selectedClip} />
+      <Timeline setSelectedClip={setSelectedClip} />
     </div>
   );
-}
+};
+
+export default App;
