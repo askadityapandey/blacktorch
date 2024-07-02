@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 
 interface TimelineProps {
   setSelectedClip: (clip: string) => void;
@@ -26,27 +27,59 @@ const Timeline: React.FC<TimelineProps> = ({ setSelectedClip }) => {
     setSelectedClip(clip);
   };
 
+  const onDragEnd = (result: DropResult) => {
+    if (!result.destination) return;
+    const items = Array.from(clips);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+    setClips(items);
+  };
+
   return (
     <div style={{ width: '80%', marginTop: '20px' }}>
       <input type="file" accept="video/*" onChange={handleAddClip} />
       <input type="file" accept="audio/*" onChange={handleAddAudio} style={{ marginTop: '10px' }} />
-      <div style={{ display: 'flex', overflowX: 'scroll', marginTop: '10px' }}>
-        {clips.map((clip, index) => (
-          <div
-            key={index}
-            style={{
-              width: '120px',
-              height: '80px',
-              margin: '0 5px',
-              backgroundColor: '#333',
-              cursor: 'pointer',
-            }}
-            onClick={() => handleClipClick(clip)}
-          >
-            <video src={clip} style={{ width: '100%', height: '100%' }} />
-          </div>
-        ))}
-      </div>
+      <DragDropContext onDragEnd={onDragEnd}>
+        <Droppable droppableId="clips" direction="horizontal">
+          {(provided) => (
+            <div
+              ref={provided.innerRef}
+              {...provided.droppableProps}
+              style={{ display: 'flex', overflowX: 'scroll', marginTop: '10px' }}
+            >
+              {clips.map((clip, index) => (
+                <Draggable key={clip} draggableId={clip} index={index}>
+                  {(provided) => (
+                    <div
+                      ref={provided.innerRef}
+                      {...provided.draggableProps}
+                      {...provided.dragHandleProps}
+                      style={{
+                        userSelect: 'none',
+                        padding: '0 5px',
+                        ...provided.draggableProps.style,
+                      }}
+                      onClick={() => handleClipClick(clip)}
+                    >
+                      <div
+                        style={{
+                          width: '120px',
+                          height: '80px',
+                          backgroundColor: '#333',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <video src={clip} style={{ width: '100%', height: '100%' }} />
+                      </div>
+                    </div>
+                  )}
+                </Draggable>
+              ))}
+              {provided.placeholder}
+            </div>
+          )}
+        </Droppable>
+      </DragDropContext>
       {audio && (
         <div style={{ marginTop: '10px', backgroundColor: '#ccc', padding: '10px' }}>
           <audio src={audio} controls style={{ width: '100%' }} />
